@@ -72,7 +72,7 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
 
   void _goToProfile(String username) {
     // Aquí puedes navegar a la pantalla del perfil del usuario
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfileScreen(username: username)));
+     Navigator.pushNamed(context, '/userProfile');
     print('Navegando al perfil de: $username'); // Esta línea es solo para pruebas
   }
 

@@ -6,6 +6,7 @@ import 'screens/buscador.dart';
 import 'screens/subirPublicacion.dart';
 import 'screens/home.dart';
 import 'screens/videos.dart';
+import 'screens/userProfile.dart';
 void main() {
   runApp(MyApp());
 }
@@ -28,7 +29,8 @@ class MyApp extends StatelessWidget {
         '/buscador': (context) => BuscadorScreen(),
         '/subirPublicacion': (context) => subirScreen(),
         '/home': (context) => HomeScreen(),
-        '/videos': (context) => VideoFeedScreen()
+        '/videos': (context) => VideoFeedScreen(),
+        '/userProfile': (context) => UserProfileScreen()
 
       },
     );
