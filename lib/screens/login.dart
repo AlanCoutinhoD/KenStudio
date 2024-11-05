@@ -61,7 +61,7 @@ class LoginScreen extends StatelessWidget {
               onPressed: () {
                 // Navega a la pantalla principal al iniciar sesión
                 // Navigator.pushNamed(context, '/home');
-                Navigator.pushNamed(context, '/videos');
+                Navigator.pushNamed(context, '/home');
               },
               child: Text(
                 'Iniciar Sesion',

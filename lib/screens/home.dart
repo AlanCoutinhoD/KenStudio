@@ -6,12 +6,11 @@ class HomeScreen extends StatelessWidget {
     {
       'username': 'Noe Alejandro',
       'userhandle': '@Noeon',
-      'profileImage': 'https://yt3.googleusercontent.com/LSzYgCI1omHqqJ_kwGclTsZ68_jstIUpJNMjL64D0pD8vJrNEmXz5QFfC05zn5PHe4UGhKpyKw=s900-c-k-c0x00ffffff-no-rj', // Imagen de perfil del usuario
-      'postImage': 'https://th.bing.com/th/id/R.c0a730b85da26a404a60d3da4289dfd3?rik=NgSa4X6OQKG1bA&riu=http%3a%2f%2fpm1.narvii.com%2f7807%2f73059d227c8c1f5ff28bb0e27406cf02c72de741r1-451-680v2_uhq.jpg&ehk=YD%2fdRTlhVfMpwDuZEtPmWnvNsirCj9%2fDKtueQ4NEg%2bM%3d&risl=&pid=ImgRaw&r=0', // Imagen del post
+      'profileImage': 'https://yt3.googleusercontent.com/LSzYgCI1omHqqJ_kwGclTsZ68_jstIUpJNMjL64D0pD8vJrNEmXz5QFfC05zn5PHe4UGhKpyKw=s900-c-k-c0x00ffffff-no-rj',
+      'postImage': 'https://th.bing.com/th/id/R.c0a730b85da26a404a60d3da4289dfd3?rik=NgSa4X6OQKG1bA&riu=http%3a%2f%2fpm1.narvii.com%2f7807%2f73059d227c8c1f5ff28bb0e27406cf02c72de741r1-451-680v2_uhq.jpg&ehk=YD%2fdRTlhVfMpwDuZEtPmWnvNsirCj9%2fDKtueQ4NEg%2bM%3d&risl=&pid=ImgRaw&r=0',
       'title': 'Evento de 15 años',
       'description': 'Evento de 15 años en Tuxtla Gutiérrez en el salón Las Lomas'
     },
-    // Puedes agregar más posts a esta lista
     {
       'username': 'Luis Batalla',
       'userhandle': '@LuisB',
@@ -20,15 +19,6 @@ class HomeScreen extends StatelessWidget {
       'title': 'Concierto en Chiapas',
       'description': 'Concierto en Chiapas con artistas locales'
     },
-{
-      'username': 'Luis Batalla',
-      'userhandle': '@LuisB',
-      'profileImage': 'https://i.kym-cdn.com/photos/images/facebook/002/295/694/056.jpg',
-      'postImage': 'https://th.bing.com/th/id/R.bd024224d3c4e6c37f013f2d308b5af7?rik=piNXOCvYZrOrQA&pid=ImgRaw&r=0',
-      'title': 'Concierto en Chiapas',
-      'description': 'Concierto en Chiapas con artistas locales'
-    },
-
   ];
 
   @override
@@ -49,12 +39,24 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Cabecera del post (perfil)
                   Row(
                     children: [
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(post['profileImage']!),
-                        radius: 25,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/userProfile',
+                            arguments: {
+                              'username': post['username'],
+                              'userhandle': post['userhandle'],
+                              'profileImage': post['profileImage'],
+                            },
+                          );
+                        },
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(post['profileImage']!),
+                          radius: 25,
+                        ),
                       ),
                       SizedBox(width: 10),
                       Column(
@@ -74,7 +76,6 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 10),
-                  // Imagen del post
                   Image.network(
                     post['postImage']!,
                     fit: BoxFit.cover,
@@ -82,7 +83,6 @@ class HomeScreen extends StatelessWidget {
                     height: 200,
                   ),
                   SizedBox(height: 10),
-                  // Título del post
                   Text(
                     post['title']!,
                     style: TextStyle(
@@ -91,31 +91,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 5),
-                  // Descripción del post
                   Text(post['description']!,
                       style: TextStyle(color: Colors.grey)),
-                  SizedBox(height: 10),
-                  // Botones de "Me gusta", "Compartir"
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () {
-                          // Lógica para "Me gusta"
-                        },
-                        icon: Icon(Icons.favorite_border, color: Colors.red),
-                        label: Text('Me gusta',
-                            style: TextStyle(color: Colors.red)),
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          // Lógica para compartir
-                        },
-                        icon: Icon(Icons.share, color: Colors.grey),
-                        label: Text('Compartir', style: TextStyle(color: Colors.grey)),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -125,32 +102,46 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.red,
         unselectedItemColor: Colors.grey,
-        currentIndex: 1, // Índice seleccionado (Inicio)
+        currentIndex: 0,
         items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Inicio',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notificaciones',
+            icon: Icon(Icons.group),
+            label: 'Amigos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box, color: Colors.red, size: 40),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.live_tv),
+            label: 'Bandeja',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
           ),
         ],
         onTap: (index) {
-          // Lógica para cambiar entre pantallas
           switch (index) {
             case 0:
-              Navigator.pushNamed(context, '/profile'); // Navegar a la pantalla de perfil
+              Navigator.pushNamed(context, '/home');
               break;
             case 1:
-              // Estamos en la pantalla de inicio, no hacer nada
+              Navigator.pushNamed(context, '/friends');
               break;
             case 2:
-              Navigator.pushNamed(context, '/notifications'); // Navegar a la pantalla de notificaciones
+              // Acción para el botón central
+              Navigator.pushNamed(context, '/subirPublicacion');
+              break;
+            case 3:
+              Navigator.pushNamed(context, '/videos');
+              break;
+            case 4:
+              Navigator.pushNamed(context, '/profile');
               break;
           }
         },

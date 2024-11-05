@@ -1,14 +1,13 @@
-// screens/upload_screen.dart
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class subirScreen extends StatefulWidget {
+class SubirScreen extends StatefulWidget {
   @override
-  _subirScreenState createState() => _subirScreenState();
+  _SubirScreenState createState() => _SubirScreenState();
 }
 
-class _subirScreenState extends State<subirScreen> {
+class _SubirScreenState extends State<SubirScreen> {
   File? _image;  // Variable para almacenar la imagen seleccionada
   final picker = ImagePicker();
   final _titleController = TextEditingController();
@@ -169,20 +168,49 @@ class _subirScreenState extends State<subirScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.red,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 2, // Índice de la vista de "Subir"
         items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Inicio',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notificaciones',
+            icon: Icon(Icons.group),
+            label: 'Amigos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box, color: Colors.red, size: 40),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.live_tv),
+            label: 'Bandeja',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
           ),
         ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/friends');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/upload');
+              break;
+            case 3:
+              Navigator.pushNamed(context, '/videos');
+              break;
+            case 4:
+              Navigator.pushNamed(context, '/profile');
+              break;
+          }
+        },
       ),
     );
   }

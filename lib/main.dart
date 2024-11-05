@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(), 
         '/registro': (context) => RegisterScreen(),
         '/buscador': (context) => BuscadorScreen(),
-        '/subirPublicacion': (context) => subirScreen(),
+        '/subirPublicacion': (context) => SubirScreen(),
         '/home': (context) => HomeScreen(),
         '/videos': (context) => VideoFeedScreen(),
         '/userProfile': (context) => UserProfileScreen()

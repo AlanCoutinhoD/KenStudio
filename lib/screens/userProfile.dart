@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';  // Importa el paquete de fl_chart
 
-// Aquí puedes incluir el modelo de usuario si no está en otro archivo
+// Modelo de perfil de usuario
 class UserProfile {
   String username;
   String userhandle;
@@ -32,7 +33,6 @@ class UserProfile {
 }
 
 class UserProfileScreen extends StatelessWidget {
-  // Datos de usuario desde el JSON
   final UserProfile userProfile = UserProfile(
     username: 'Noe Alejandro',
     userhandle: '@Noeon',
@@ -55,7 +55,6 @@ class UserProfileScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Encabezado con información del perfil sin la línea roja arriba
             Container(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Column(
@@ -63,7 +62,7 @@ class UserProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.red,
-                    backgroundImage: NetworkImage(userProfile.profileImage), // Imagen de perfil
+                    backgroundImage: NetworkImage(userProfile.profileImage),
                   ),
                   SizedBox(height: 10),
                   Text(
@@ -84,7 +83,6 @@ class UserProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            // Sección de estadísticas (Posts, Seguidores, Siguiendo)
             Container(
               color: Colors.white,
               padding: EdgeInsets.symmetric(vertical: 20),
@@ -130,7 +128,6 @@ class UserProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            // Información adicional del usuario
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Column(
@@ -180,7 +177,6 @@ class UserProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            // Botones de seguir y mensaje
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
@@ -200,90 +196,76 @@ class UserProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            // Lista de publicaciones
-            ...List.generate(3, (index) {
-              return PostCard(
-                username: userProfile.username,
-                userhandle: userProfile.userhandle,
-                profileImage: userProfile.profileImage,
-                postImage: 'https://th.bing.com/th/id/R.c0a730b85da26a404a60d3da4289dfd3?rik=NgSa4X6OQKG1bA&riu=http%3a%2f%2fpm1.narvii.com%2f7807%2f73059d227c8c1f5ff28bb0e27406cf02c72de741r1-451-680v2_uhq.jpg&ehk=YD%2fdRTlhVfMpwDuZEtPmWnvNsirCj9%2fDKtueQ4NEg%2bM%3d&risl=&pid=ImgRaw&r=0',
-                title: 'Evento de 15 años',
-                description: 'Evento de 15 años en Tuxtla Gutiérrez en el salón Las Lomas',
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PostCard extends StatelessWidget {
-  final String username;
-  final String userhandle;
-  final String profileImage;
-  final String postImage;
-  final String title;
-  final String description;
-
-  PostCard({
-    required this.username,
-    required this.userhandle,
-    required this.profileImage,
-    required this.postImage,
-    required this.title,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: NetworkImage(profileImage),
-                ),
-                SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(username, style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text(userhandle, style: TextStyle(color: Colors.grey)),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Image.network(postImage),
-            SizedBox(height: 10),
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 5),
-            Text(description, style: TextStyle(color: Colors.grey)),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.favorite_border, color: Colors.red),
-                    SizedBox(width: 5),
-                    Text('Me gusta', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(Icons.share, color: Colors.grey),
-                    SizedBox(width: 5),
-                    Text('Compartir', style: TextStyle(color: Colors.grey)),
-                  ],
-                ),
-              ],
+            // Agregar gráficas de actividad y calificaciones
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  // Gráfica de actividad reciente
+                  Text("Actividad Reciente", style: TextStyle(fontWeight: FontWeight.bold)),
+                  AspectRatio(
+                    aspectRatio: 1.7,
+                    child: LineChart(
+                      LineChartData(
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: [
+                              FlSpot(0, 15),
+                              FlSpot(1, 30),
+                              FlSpot(2, 25),
+                              FlSpot(3, 35),
+                              FlSpot(4, 30),
+                              FlSpot(5, 40),
+                            ],
+                            isCurved: true,
+                            dotData: FlDotData(show: true),
+                            color: Colors.red, // Corregido: usar 'color' en lugar de 'colors'
+                            barWidth: 2,
+                          ),
+                        ],
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, _) {
+                                const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun"];
+                                return Text(months[value.toInt()]);
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  // Gráfica de calificaciones
+                  Text("Calificaciones de Usuarios", style: TextStyle(fontWeight: FontWeight.bold)),
+                  AspectRatio(
+                    aspectRatio: 1.3,
+                    child: BarChart(
+                      BarChartData(
+                        barGroups: [
+                          BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 150, color: Colors.red)]),
+                          BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 100, color: Colors.red)]),
+                          BarChartGroupData(x: 3, barRods: [BarChartRodData(toY: 75, color: Colors.red)]),
+                          BarChartGroupData(x: 4, barRods: [BarChartRodData(toY: 50, color: Colors.red)]),
+                          BarChartGroupData(x: 5, barRods: [BarChartRodData(toY: 25, color: Colors.red)]),
+                        ],
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, _) => Text(value.toInt().toString()),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
