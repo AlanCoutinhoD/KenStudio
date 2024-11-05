@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SubirScreen extends StatefulWidget {
   @override
@@ -12,11 +14,10 @@ class _SubirScreenState extends State<SubirScreen> {
   final picker = ImagePicker();
   final _titleController = TextEditingController();
   final _infoController = TextEditingController();
-
+  
   // Función para seleccionar imagen de la galería
   Future<void> _pickImageFromGallery() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
@@ -27,12 +28,41 @@ class _SubirScreenState extends State<SubirScreen> {
   // Función para tomar foto con la cámara
   Future<void> _pickImageFromCamera() async {
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
-
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
       }
     });
+  }
+
+  // Función para subir la imagen a Imgur
+  Future<void> _uploadImage() async {
+    if (_image == null) return;
+
+    String clientId = 'fd6f28ce9d88390'; // Reemplaza con tu Client ID
+    String url = "https://api.imgur.com/3/image";
+    
+    try {
+      final request = http.MultipartRequest("POST", Uri.parse(url));
+      request.headers["Authorization"] = "Client-ID $clientId";
+      request.files.add(await http.MultipartFile.fromPath('image', _image!.path));
+
+      final response = await request.send();
+      final responseData = await http.Response.fromStream(response);
+
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(responseData.body);
+        String imageUrl = jsonResponse['data']['link']; // Obtiene la URL de la imagen
+        print('Imagen subida exitosamente: $imageUrl'); // Imprime la URL en la consola
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Imagen subida exitosamente: $imageUrl')));
+      } else {
+        print('Error al subir la imagen: ${response.reasonPhrase}');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al subir la imagen')));
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al subir la imagen: $e')));
+    }
   }
 
   @override
@@ -47,15 +77,11 @@ class _SubirScreenState extends State<SubirScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Imagen',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Imagen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
             Center(
               child: GestureDetector(
                 onTap: () {
-                  // Mostrar opciones para elegir galería o cámara
                   showModalBottomSheet(
                     context: context,
                     builder: (BuildContext context) {
@@ -97,63 +123,31 @@ class _SubirScreenState extends State<SubirScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.image, size: 50, color: Colors.grey),
-                            Text(
-                              'Subir una imagen',
-                              style: TextStyle(color: Colors.red),
-                            ),
+                            Text('Subir una imagen', style: TextStyle(color: Colors.red)),
                             Text('Selecciona la imagen'),
                             Text('PNG, JPG, GIF hasta 10MB'),
                           ],
                         ),
                       )
-                    : Image.file(
-                        _image!,
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
+                    : Image.file(_image!, width: double.infinity, height: 200, fit: BoxFit.cover),
               ),
             ),
             SizedBox(height: 20),
-            Text(
-              'Título',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Título', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Introduce un título',
-              ),
-            ),
+            TextField(controller: _titleController, decoration: InputDecoration(border: OutlineInputBorder(), hintText: 'Introduce un título')),
             SizedBox(height: 20),
-            Text(
-              'Información',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Información', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            TextField(
-              controller: _infoController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Introduce una descripción',
-              ),
-            ),
+            TextField(controller: _infoController, decoration: InputDecoration(border: OutlineInputBorder(), hintText: 'Introduce una descripción')),
             SizedBox(height: 20),
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // Lógica para subir la imagen y datos
                   if (_image != null && _titleController.text.isNotEmpty && _infoController.text.isNotEmpty) {
-                    // Aquí puedes añadir lógica para guardar la publicación
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Publicación subida')),
-                    );
+                    _uploadImage(); // Llamamos a la función para subir la imagen
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Completa todos los campos')),
-                    );
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Completa todos los campos')));
                   }
                 },
                 child: Text('Subir imagen'),
@@ -171,26 +165,11 @@ class _SubirScreenState extends State<SubirScreen> {
         unselectedItemColor: Colors.grey,
         currentIndex: 2, // Índice de la vista de "Subir"
         items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group),
-            label: 'Amigos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box, color: Colors.red, size: 40),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.live_tv),
-            label: 'Bandeja',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Amigos'),
+          BottomNavigationBarItem(icon: Icon(Icons.add_box, color: Colors.red, size: 40), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.live_tv), label: 'Bandeja'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
         onTap: (index) {
           switch (index) {

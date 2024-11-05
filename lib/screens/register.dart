@@ -11,37 +11,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
-  
-  // Variable para manejar el mensaje de error
-  String? _errorMessage;
+  String _errorMessage = '';
 
   Future<void> _registerUser() async {
-    final String url = 'http://10.0.2.2:3000/api/v1/usuarios';
+    final String url = 'http://10.0.2.2:3000/api/v1/usuarios'; // Cambia esto según tu configuración
 
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "nombre": _nombreController.text,
-        "password": _passwordController.text,
-        "telefono": _telefonoController.text,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "nombre": _nombreController.text,
+          "password": _passwordController.text,
+          "telefono": _telefonoController.text,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      if (responseData["status"] == "success") {
-        // Navegar a la pantalla principal si el registro es exitoso
-        Navigator.pushNamed(context, '/home');
+      // Imprimir el estado y cuerpo de la respuesta en la consola para depuración
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      // Verificar si la respuesta es exitosa
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData["status"] == "success") {
+          // Navegar a la pantalla de inicio si el registro es exitoso
+          Navigator.pushNamed(context, '/home');
+        } else {
+          // Manejar error si el registro no es exitoso
+          setState(() {
+            _errorMessage = responseData["message"] ?? "Error desconocido.";
+          });
+        }
       } else {
-        // Manejar error si el registro no es exitoso
+        // Manejar un código de estado que no es 200 o 201
         setState(() {
-          _errorMessage = "Error al registrar el usuario: ${responseData["message"]}";
+          _errorMessage = "Error en la conexión: ${response.reasonPhrase}";
         });
       }
-    } else {
+    } catch (e) {
+      // Captura cualquier excepción que ocurra durante la solicitud
       setState(() {
-        _errorMessage = "Error en la conexión: ${response.reasonPhrase}";
+        _errorMessage = "Error: $e";
       });
     }
   }
@@ -87,15 +98,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             SizedBox(height: 20),
-            // Campo de texto para Correo Electrónico
-            TextField(
-              controller: _telefonoController,
-              decoration: InputDecoration(
-                labelText: 'Teléfono',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 20),
             // Campo de texto para Contraseña
             TextField(
               controller: _passwordController,
@@ -107,33 +109,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             SizedBox(height: 20),
+            // Campo de texto para Teléfono
+            TextField(
+              controller: _telefonoController,
+              decoration: InputDecoration(
+                labelText: 'Teléfono',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20),
             // Botón de Registro
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red, // Color rojo para el botón
                 minimumSize: Size(double.infinity, 50), // Botón que ocupe todo el ancho
               ),
-              onPressed: () {
-                _registerUser(); // Llama a la función para registrar el usuario
-              },
+              onPressed: _registerUser,
               child: Text(
                 'Registrarme',
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
             ),
             SizedBox(height: 20),
-            // Mensaje de error
-            if (_errorMessage != null) ...[
+            // Mostrar mensaje de error, si existe
+            if (_errorMessage.isNotEmpty)
               Text(
-                _errorMessage!,
+                _errorMessage,
                 style: TextStyle(color: Colors.red),
               ),
-              SizedBox(height: 10),
-            ],
-            // Enlace de Iniciar sesión
+            // Enlace para iniciar sesión
             GestureDetector(
               onTap: () {
-                Navigator.pushReplacementNamed(context, '/home');
+                Navigator.pushReplacementNamed(context, '/login');
               },
               child: Text(
                 'Iniciar sesión',

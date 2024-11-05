@@ -7,7 +7,13 @@ import 'screens/subirPublicacion.dart';
 import 'screens/home.dart';
 import 'screens/videos.dart';
 import 'screens/userProfile.dart';
-void main() {
+
+
+void main() async {
+  // Asegúrate de que WidgetsBinding esté inicializado antes de llamar a Firebase.initializeApp()
+  WidgetsFlutterBinding.ensureInitialized();
+
+  
   runApp(MyApp());
 }
 
@@ -27,11 +33,10 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(), 
         '/registro': (context) => RegisterScreen(),
         '/buscador': (context) => BuscadorScreen(),
-        '/subirPublicacion': (context) => SubirScreen(),
+        '/subirPublicacion': (context) => SubirScreen(),  // Asegúrate de que esta pantalla esté importada correctamente
         '/home': (context) => HomeScreen(),
         '/videos': (context) => VideoFeedScreen(),
         '/userProfile': (context) => UserProfileScreen()
-
       },
     );
   }
