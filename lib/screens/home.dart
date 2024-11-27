@@ -141,7 +141,7 @@ class HomeScreen extends StatelessWidget {
               Navigator.pushNamed(context, '/videos');
               break;
             case 4:
-              Navigator.pushNamed(context, '/profile');
+              Navigator.pushNamed(context, '/userProfile');
               break;
           }
         },

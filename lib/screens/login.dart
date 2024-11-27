@@ -34,17 +34,20 @@ class _LoginScreenState extends State<LoginScreen> {
           // Manejar error si el usuario no fue encontrado
           setState(() {
             _errorMessage = "Nombre o contraseña incorrectos.";
+             Navigator.pushNamed(context, '/home'); // <---- QUITA ESTO
           });
         }
       } else {
         // Manejar un código de estado diferente a 200
         setState(() {
+          Navigator.pushNamed(context, '/home'); // <---- QUITA ESTO
           _errorMessage = "Error en la conexión: ${response.reasonPhrase}";
         });
       }
     } catch (e) {
       // Captura cualquier excepción que ocurra durante la solicitud
       setState(() {
+        
         _errorMessage = "Error: $e";
       });
     }
@@ -53,102 +56,112 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true, // Ajustar automáticamente para evitar desbordamiento
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/logo.png',  // Ruta de la imagen del logo
-              height: 150,               // Ajustar el tamaño si es necesario
-            ),
-            SizedBox(height: 20),
-            Text(
-              'KENSTUDIO',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Discover music\naround the world',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-              ),
-            ),
-            SizedBox(height: 30),
-            // Campo de texto para Nombre
-            TextField(
-              controller: _nombreController,
-              decoration: InputDecoration(
-                labelText: 'Correo Electronico',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Campo de texto para Contraseña
-            TextField(
-              controller: _passwordController,
-              obscureText: true,  // Oculta el texto
-              decoration: InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.visibility),  // Icono para mostrar/ocultar la contraseña
-              ),
-            ),
-            SizedBox(height: 20),
-            // Botón de Iniciar Sesión
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, // Color rojo para el botón
-                minimumSize: Size(double.infinity, 50), // Botón que ocupe todo el ancho
-              ),
-              onPressed: _loginUser,
-              child: Text(
-                'Iniciar Sesion',
-                style: TextStyle(fontSize: 18, color: Colors.white),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Mostrar mensaje de error, si existe
-            if (_errorMessage.isNotEmpty)
-              Text(
-                _errorMessage,
-                style: TextStyle(color: Colors.red),
-              ),
-            // Enlace de Olvidaste tu contraseña
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, '/subirPublicacion');
-              },
-              child: Text(
-                'Olvidaste tu contraseña?',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
+      body: SafeArea( // Asegura que el contenido no se solape con bordes seguros
+        child: SingleChildScrollView( // Permite desplazar el contenido si es necesario
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Image.asset(
+                  'assets/images/logo.png',  // Ruta de la imagen del logo
+                  height: 150,               // Ajustar el tamaño si es necesario
                 ),
-              ),
-            ),
-            SizedBox(height: 10),
-            // Enlace de Registrarme
-            GestureDetector(
-              onTap: () {
-                Navigator.pushReplacementNamed(context, '/registro');
-              },
-              child: Text(
-                'Registrarme',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
+                SizedBox(height: 20),
+                Text(
+                  'KENSTUDIO',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
+                SizedBox(height: 10),
+                Text(
+                  'Discover music\naround the world',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                SizedBox(height: 30),
+                // Campo de texto para Nombre
+                TextField(
+                  controller: _nombreController,
+                  decoration: InputDecoration(
+                    labelText: 'Correo Electronico',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 20),
+                // Campo de texto para Contraseña
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,  // Oculta el texto
+                  decoration: InputDecoration(
+                    labelText: 'Contraseña',
+                    border: OutlineInputBorder(),
+                    suffixIcon: Icon(Icons.visibility),  // Icono para mostrar/ocultar la contraseña
+                  ),
+                ),
+                SizedBox(height: 20),
+                // Botón de Iniciar Sesión
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red, // Color rojo para el botón
+                    minimumSize: Size(double.infinity, 50), // Botón que ocupe todo el ancho
+                  ),
+                  onPressed: _loginUser,
+                  child: Text(
+                    'Iniciar Sesion',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+                SizedBox(height: 20),
+                // Mostrar mensaje de error, si existe
+                if (_errorMessage.isNotEmpty)
+                  Text(
+                    _errorMessage,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                // Enlace de Olvidaste tu contraseña
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home'); // <---- QUITA ESTO
+                    // Navigator.pushNamed(context, '/buscador');
+                  },
+                  child: Text(
+                    'Olvidaste tu contraseña?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                // Enlace de Registrarme
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, '/registro');
+                  },
+                  child: Text(
+                    'Registrarme',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
