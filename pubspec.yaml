@@ -18,6 +18,9 @@ dependencies:
   fl_chart: ^0.69.0  
   http: ^1.2.2
   url_launcher: ^6.0.9
+  geolocator: ^9.0.1
+  geocoding: ^2.0.0
+  shared_preferences: ^2.0.13
 
   
   cupertino_icons: ^1.0.8

@@ -7,12 +7,11 @@ import 'screens/subirPublicacion.dart';
 import 'screens/home.dart';
 import 'screens/videos.dart';
 import 'screens/userProfile.dart';
-
+import 'screens/registerUser.dart';
 
 void main() async {
   // Asegúrate de que WidgetsBinding esté inicializado antes de llamar a Firebase.initializeApp()
   WidgetsFlutterBinding.ensureInitialized();
-
   
   runApp(MyApp());
 }
@@ -29,14 +28,19 @@ class MyApp extends StatelessWidget {
       // Definir las rutas de la aplicación
       initialRoute: '/',
       routes: {
-        '/': (context) => WelcomeScreen(),  
-        '/login': (context) => LoginScreen(), 
+        '/': (context) => WelcomeScreen(),
+        '/login': (context) => LoginScreen(),
         '/registro': (context) => RegisterScreen(),
         '/buscador': (context) => BuscadorScreen(),
-        '/subirPublicacion': (context) => SubirScreen(),  // Asegúrate de que esta pantalla esté importada correctamente
+        '/subirPublicacion': (context) => SubirScreen(),
         '/home': (context) => HomeScreen(),
         '/videos': (context) => VideoFeedScreen(),
-        '/userProfile': (context) => UserProfileScreen()
+        // Modificación: Enviar el userId al navegar a UserProfileScreen
+        '/userProfile': (context) {
+          final userId = ModalRoute.of(context)!.settings.arguments as String;
+          return UserProfileScreen(userId: userId); // Pasar el userId recibido
+        },
+        '/userRegister': (context) => RegisterClientScreen(),
       },
     );
   }

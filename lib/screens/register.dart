@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -8,49 +9,57 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
+  final TextEditingController _correoController = TextEditingController();
   String _errorMessage = '';
 
   Future<void> _registerUser() async {
-    final String url = 'http://10.0.2.2:3000/api/v1/usuarios'; // Cambia esto según tu configuración
+    final String url = 'https://f6b472jh-3006.usw3.devtunnels.ms/api/v1/contacto';
 
     try {
       final response = await http.post(
         Uri.parse(url),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          "nombre": _nombreController.text,
-          "password": _passwordController.text,
+          "username": _usernameController.text,
           "telefono": _telefonoController.text,
+          "correo": _correoController.text,
+          "sendBy": "correo",
         }),
       );
 
-      // Imprimir el estado y cuerpo de la respuesta en la consola para depuración
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
-      // Verificar si la respuesta es exitosa
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-        if (responseData["status"] == "success") {
-          // Navegar a la pantalla de inicio si el registro es exitoso
-          Navigator.pushNamed(context, '/home');
+        final responseBody = jsonDecode(response.body);
+
+        // Asegúrate de que el "id" esté dentro de "data"
+        final String? userId = responseBody['data']?['id']; // Obtén el ID dentro de "data"
+
+        if (userId != null) {
+          // Guarda el "id" en SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_id', userId);
+
+          // Imprime el "id" en la consola
+          print('User ID almacenado: $userId');
+
+          // Navega a la pantalla principal
+          Navigator.pushReplacementNamed(context, '/userRegister');
         } else {
-          // Manejar error si el registro no es exitoso
           setState(() {
-            _errorMessage = responseData["message"] ?? "Error desconocido.";
+            _errorMessage = "No se recibió un ID válido del servidor.";
           });
+          print('Error: ID no encontrado en la respuesta del servidor.');
         }
       } else {
-        // Manejar un código de estado que no es 200 o 201
         setState(() {
           _errorMessage = "Error en la conexión: ${response.reasonPhrase}";
         });
       }
     } catch (e) {
-      // Captura cualquier excepción que ocurra durante la solicitud
       setState(() {
         _errorMessage = "Error: $e";
       });
@@ -61,97 +70,95 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/logo.png',  // Ruta de la imagen del logo
-              height: 150,               // Ajustar el tamaño si es necesario
-            ),
-            SizedBox(height: 20),
-            Text(
-              'KENSTUDIO',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Image.asset(
+                'assets/images/logo.png',
+                height: 150,
               ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Discover music\naround the world',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-              ),
-            ),
-            SizedBox(height: 30),
-            // Campo de texto para Nombre
-            TextField(
-              controller: _nombreController,
-              decoration: InputDecoration(
-                labelText: 'Nombre',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Campo de texto para Contraseña
-            TextField(
-              controller: _passwordController,
-              obscureText: true,  // Oculta el texto
-              decoration: InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.visibility),  // Icono para mostrar/ocultar la contraseña
-              ),
-            ),
-            SizedBox(height: 20),
-            // Campo de texto para Teléfono
-            TextField(
-              controller: _telefonoController,
-              decoration: InputDecoration(
-                labelText: 'Teléfono',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Botón de Registro
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, // Color rojo para el botón
-                minimumSize: Size(double.infinity, 50), // Botón que ocupe todo el ancho
-              ),
-              onPressed: _registerUser,
-              child: Text(
-                'Registrarme',
-                style: TextStyle(fontSize: 18, color: Colors.white),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Mostrar mensaje de error, si existe
-            if (_errorMessage.isNotEmpty)
+              SizedBox(height: 20),
               Text(
-                _errorMessage,
-                style: TextStyle(color: Colors.red),
-              ),
-            // Enlace para iniciar sesión
-            GestureDetector(
-              onTap: () {
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-              child: Text(
-                'Iniciar sesión',
+                'KENSTUDIO',
                 style: TextStyle(
-                  color: Colors.red,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Discover music\naround the world',
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   fontSize: 16,
+                  color: Colors.grey[700],
                 ),
               ),
-            ),
-            SizedBox(height: 10),
-          ],
+              SizedBox(height: 30),
+              TextField(
+                controller: _usernameController,
+                decoration: InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: _telefonoController,
+                decoration: InputDecoration(
+                  labelText: 'Teléfono',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: _correoController,
+                decoration: InputDecoration(
+                  labelText: 'Correo',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  minimumSize: Size(double.infinity, 50),
+                ),
+                onPressed: _registerUser,
+                child: Text(
+                  'Registrarme',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ),
+              SizedBox(height: 20),
+              if (_errorMessage.isNotEmpty)
+                Text(
+                  _errorMessage,
+                  style: TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
+                child: Text(
+                  'Iniciar sesión',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
     );
