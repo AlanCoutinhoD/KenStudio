@@ -62,6 +62,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   late UserProfile userProfile;
   bool isLoading = true;
 
+  final TextEditingController _reviewController = TextEditingController();
+  int _rating = 5;
+
+  final List<Map<String, dynamic>> exampleReviews = [
+    {'reviewer': 'Carlos', 'rating': 4, 'comment': 'Muy buen perfil y contenido.'},
+    {'reviewer': 'Ana', 'rating': 5, 'comment': 'Excelente experiencia con este usuario.'},
+    {'reviewer': 'Luis', 'rating': 3, 'comment': 'Interesante, pero hay espacio para mejorar.'},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -86,13 +95,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
+  void _submitReview() {
+    if (_reviewController.text.isNotEmpty) {
+      setState(() {
+        exampleReviews.add({
+          'reviewer': 'Tú',
+          'rating': _rating,
+          'comment': _reviewController.text,
+        });
+        _reviewController.clear();
+        _rating = 5;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Perfil de ${userProfile.username}"),
+          title: Text(isLoading ? "Cargando perfil..." : "Perfil de ${userProfile.username}"),
           bottom: TabBar(
             tabs: [
               Tab(text: "Publicaciones"),
@@ -166,8 +189,103 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ],
                     ),
                   ),
-                  // Pestaña de Reseñas (puedes completarla si es necesario)
-                  SingleChildScrollView(child: Text('Reseñas...')),
+                  // Pestaña de Reseñas
+                  SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Título de las reseñas
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Reseñas',
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        // Lista de reseñas de ejemplo
+                        ListView.builder(
+                          physics: NeverScrollableScrollPhysics(), // Evita conflictos con el Scroll principal
+                          shrinkWrap: true,
+                          itemCount: exampleReviews.length,
+                          itemBuilder: (context, index) {
+                            final review = exampleReviews[index];
+                            return ListTile(
+                              leading: Icon(Icons.star, color: Colors.orange),
+                              title: Text(review['reviewer']),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(review['comment']),
+                                  SizedBox(height: 5),
+                                  Row(
+                                    children: List.generate(5, (i) {
+                                      return Icon(
+                                        i < review['rating'] ? Icons.star : Icons.star_border,
+                                        color: Colors.orange,
+                                        size: 20,
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        Divider(),
+                        // Formulario para agregar nueva reseña
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Deja tu reseña',
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 10),
+                              TextField(
+                                controller: _reviewController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Escribe tu comentario',
+                                ),
+                                maxLines: 3,
+                              ),
+                              SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Calificación:',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(width: 10),
+                                  DropdownButton<int>(
+                                    value: _rating,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _rating = value!;
+                                      });
+                                    },
+                                    items: List.generate(5, (i) {
+                                      return DropdownMenuItem(
+                                        value: i + 1,
+                                        child: Text('${i + 1} Estrellas'),
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: _submitReview,
+                                child: Text('Enviar Reseña'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
       ),
