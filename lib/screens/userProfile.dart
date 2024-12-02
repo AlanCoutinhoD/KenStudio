@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
+// Modelo de Usuario
 class UserProfile {
   String username;
   String userhandle;
@@ -49,8 +51,33 @@ class UserProfile {
   }
 }
 
+// Modelo de Reseña
+class Review {
+  final String id;
+  final String comentario;
+  final int estrellas;
+  final String? nombreUsuario;
+
+  Review({
+    required this.id,
+    required this.comentario,
+    required this.estrellas,
+    this.nombreUsuario,
+  });
+
+  factory Review.fromJson(Map<String, dynamic> json) {
+    return Review(
+      id: json['id'],
+      comentario: json['comentario'],
+      estrellas: json['estrellas'],
+      nombreUsuario: json['nombre_usuario'],
+    );
+  }
+}
+
+// Pantalla del Perfil de Usuario
 class UserProfileScreen extends StatefulWidget {
-  final String userId; // Recibimos el id_cliente como parámetro
+  final String userId;
 
   UserProfileScreen({required this.userId});
 
@@ -60,52 +87,88 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   late UserProfile userProfile;
+  List<Review> userReviews = [];
   bool isLoading = true;
 
   final TextEditingController _reviewController = TextEditingController();
   int _rating = 5;
 
-  final List<Map<String, dynamic>> exampleReviews = [
-    {'reviewer': 'Carlos', 'rating': 4, 'comment': 'Muy buen perfil y contenido.'},
-    {'reviewer': 'Ana', 'rating': 5, 'comment': 'Excelente experiencia con este usuario.'},
-    {'reviewer': 'Luis', 'rating': 3, 'comment': 'Interesante, pero hay espacio para mejorar.'},
-  ];
-
   @override
   void initState() {
     super.initState();
-    _fetchUserProfile(); // Llamamos la API con el ID del usuario recibido
+    _fetchUserProfile();
   }
 
-  // Método para obtener el perfil del usuario
   Future<void> _fetchUserProfile() async {
-    final url = Uri.parse('https://f6b472jh-3006.usw3.devtunnels.ms/api/v1/clientes/${widget.userId}');
-    final response = await http.get(url);
+    final profileUrl = Uri.parse('https://f6b472jh-3006.usw3.devtunnels.ms/api/v1/clientes/${widget.userId}');
+    final reviewsUrl = Uri.parse('https://f6b472jh-3006.usw3.devtunnels.ms/api/v1/usuarios/${widget.userId}/resenas');
 
-    if (response.statusCode == 200) {
+    try {
+      final profileResponse = await http.get(profileUrl);
+      if (profileResponse.statusCode == 200) {
+        userProfile = UserProfile.fromJson(json.decode(profileResponse.body));
+      } else {
+        throw Exception('Error al cargar el perfil');
+      }
+
+      final reviewsResponse = await http.get(reviewsUrl);
+      if (reviewsResponse.statusCode == 200) {
+        final List<dynamic> reviewsJson = json.decode(reviewsResponse.body)['data'];
+        userReviews = reviewsJson.map((review) => Review.fromJson(review)).toList();
+      } else {
+        throw Exception('Error al cargar las reseñas');
+      }
+    } catch (e) {
+      print('Error: $e');
+    } finally {
       setState(() {
-        userProfile = UserProfile.fromJson(json.decode(response.body));
         isLoading = false;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      throw Exception('Failed to load user profile');
     }
   }
 
-  void _submitReview() {
+  Future<void> _submitReview() async {
+    String? userId1 = await _getUserId();
+    String userId = userId1 ?? 'default_value';
+
     if (_reviewController.text.isNotEmpty) {
-      setState(() {
-        exampleReviews.add({
-          'reviewer': 'Tú',
-          'rating': _rating,
-          'comment': _reviewController.text,
-        });
-        _reviewController.clear();
-        _rating = 5;
+      final url = Uri.parse('https://f6b472jh-3006.usw3.devtunnels.ms/api/v1/usuarios/${widget.userId}/resenas');
+      final body = json.encode({
+        "id_cliente": widget.userId,
+        "comentario": _reviewController.text,
       });
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {"Content-Type": "application/json"},
+          body: body,
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          setState(() {
+            userReviews.add(Review(
+              id: DateTime.now().toString(),
+              comentario: _reviewController.text,
+              estrellas: _rating,
+              nombreUsuario: "Tú",
+            ));
+            _reviewController.clear();
+            _rating = 5;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Reseña enviada con éxito.')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al enviar la reseña. Inténtalo de nuevo.')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error de red: $e')),
+        );
+      }
     }
   }
 
@@ -127,65 +190,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ? Center(child: CircularProgressIndicator())
             : TabBarView(
                 children: [
-                  // Pestaña de Publicaciones
+                  // Pestaña de Publicaciones (vacía por ahora)
                   SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(vertical: 20),
-                          child: Column(
-                            children: [
-                              // Imagen de perfil
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Colors.red,
-                                backgroundImage: NetworkImage(userProfile.profileImage),
-                              ),
-                              SizedBox(height: 10),
-                              Text(
-                                userProfile.username,
-                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                              Text(userProfile.userhandle, style: TextStyle(fontSize: 16, color: Colors.grey)),
-                            ],
-                          ),
-                        ),
-                        // Información adicional del usuario
-                        Container(
-                          margin: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-                          padding: EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.1), spreadRadius: 2, blurRadius: 5, offset: Offset(0, 3)),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildUserInfoRow('Biografía:', userProfile.biography),
-                              _buildUserInfoRow('Ubicación:', userProfile.ubicacion),
-                              _buildUserInfoRow('Correo:', userProfile.correo),
-                              _buildUserInfoRow('Teléfono:', userProfile.numeroDeTelefono),
-                              _buildUserInfoRow('Página web:', userProfile.pagina),
-                            ],
-                          ),
-                        ),
-                        // Estadísticas del usuario
-                        Container(
-                          margin: EdgeInsets.symmetric(vertical: 10),
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          color: Colors.white,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildStatColumn(userProfile.numeroDePost, 'Posts', Icons.post_add),
-                              _buildRatingColumn(4, 5),
-                            ],
-                          ),
-                        ),
+                        // Información del Usuario
+                        _buildProfileInfo(),
+                        // Estadísticas del Usuario
+                        _buildStats(),
                       ],
                     ),
                   ),
@@ -194,7 +207,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Título de las reseñas
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
@@ -202,86 +214,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        // Lista de reseñas de ejemplo
                         ListView.builder(
-                          physics: NeverScrollableScrollPhysics(), // Evita conflictos con el Scroll principal
+                          physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
-                          itemCount: exampleReviews.length,
+                          itemCount: userReviews.length,
                           itemBuilder: (context, index) {
-                            final review = exampleReviews[index];
+                            final review = userReviews[index];
                             return ListTile(
                               leading: Icon(Icons.star, color: Colors.orange),
-                              title: Text(review['reviewer']),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(review['comment']),
-                                  SizedBox(height: 5),
-                                  Row(
-                                    children: List.generate(5, (i) {
-                                      return Icon(
-                                        i < review['rating'] ? Icons.star : Icons.star_border,
-                                        color: Colors.orange,
-                                        size: 20,
-                                      );
-                                    }),
-                                  ),
-                                ],
-                              ),
+                              title: Text(review.nombreUsuario ?? 'Anónimo'),
+                              subtitle: Text(review.comentario),
+                              trailing: Text('${review.estrellas}⭐'),
                             );
                           },
                         ),
                         Divider(),
-                        // Formulario para agregar nueva reseña
                         Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Deja tu reseña',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 10),
-                              TextField(
-                                controller: _reviewController,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Escribe tu comentario',
-                                ),
-                                maxLines: 3,
-                              ),
-                              SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Calificación:',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  SizedBox(width: 10),
-                                  DropdownButton<int>(
-                                    value: _rating,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _rating = value!;
-                                      });
-                                    },
-                                    items: List.generate(5, (i) {
-                                      return DropdownMenuItem(
-                                        value: i + 1,
-                                        child: Text('${i + 1} Estrellas'),
-                                      );
-                                    }),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 20),
-                              ElevatedButton(
-                                onPressed: _submitReview,
-                                child: Text('Enviar Reseña'),
-                              ),
-                            ],
-                          ),
+                          child: _buildReviewInput(),
                         ),
                       ],
                     ),
@@ -292,37 +242,64 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildUserInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+  Widget _buildProfileInfo() {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 50,
+          backgroundImage: NetworkImage(userProfile.profileImage),
+        ),
+        SizedBox(height: 10),
+        Text(userProfile.username, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        Text(userProfile.userhandle, style: TextStyle(fontSize: 16, color: Colors.grey)),
+      ],
+    );
+  }
+
+  Widget _buildStats() {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text('$label ', style: TextStyle(fontWeight: FontWeight.bold)),
-          Text(value),
+          _buildStatColumn(userProfile.numeroDePost, 'Posts'),
+          _buildStatColumn(userReviews.length, 'Reseñas'),
         ],
       ),
     );
   }
 
-  Widget _buildStatColumn(int count, String label, IconData icon) {
+  Widget _buildStatColumn(int count, String label) {
     return Column(
       children: [
-        Icon(icon, size: 30),
-        SizedBox(height: 5),
-        Text('$count', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        SizedBox(height: 5),
-        Text(label),
+        Text('$count', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(label, style: TextStyle(color: Colors.grey)),
       ],
     );
   }
 
-  Widget _buildRatingColumn(double rating, double maxRating) {
+  Widget _buildReviewInput() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.star, size: 30, color: Colors.orange),
-        SizedBox(height: 5),
-        Text('${rating.toStringAsFixed(1)} / $maxRating', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        TextField(
+          controller: _reviewController,
+          decoration: InputDecoration(labelText: 'Escribe tu comentario'),
+        ),
+        SizedBox(height: 10),
+        // DropdownButton<int>(
+        //   value: _rating,
+        //   onChanged: (value) => setState(() => _rating = value!),
+        //   items: List.generate(5, (i) => DropdownMenuItem(value: i + 1, child: Text('${i + 1} Estrellas'))),
+        // ),
+        SizedBox(height: 10),
+        ElevatedButton(onPressed: _submitReview, child: Text('Enviar reseña')),
       ],
     );
   }
+}
+
+Future<String?> _getUserId() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('userId');
 }
