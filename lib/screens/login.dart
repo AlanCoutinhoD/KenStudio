@@ -120,31 +120,38 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 30),
                 TextField(
-                  controller: _nombreController,
-                  decoration: InputDecoration(
-                    labelText: 'Usuario',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _isPasswordHidden, // Cambia según el estado
-                  decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    border: OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordHidden ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordHidden = !_isPasswordHidden; // Cambiar visibilidad
-                        });
-                      },
-                    ),
-                  ),
-                ),
+  controller: _nombreController,
+  decoration: InputDecoration(
+    labelText: 'Usuario',
+    border: OutlineInputBorder(),
+  ),
+  autocorrect: false, // Desactiva el autocorrector
+  enableSuggestions: false, // Desactiva las sugerencias
+  keyboardType: TextInputType.text, // Configura el tipo de teclado
+),
+
+TextField(
+  controller: _passwordController,
+  obscureText: _isPasswordHidden,
+  decoration: InputDecoration(
+    labelText: 'Contraseña',
+    border: OutlineInputBorder(),
+    suffixIcon: IconButton(
+      icon: Icon(
+        _isPasswordHidden ? Icons.visibility_off : Icons.visibility,
+      ),
+      onPressed: () {
+        setState(() {
+          _isPasswordHidden = !_isPasswordHidden;
+        });
+      },
+    ),
+  ),
+  autocorrect: false, // Desactiva el autocorrector
+  enableSuggestions: false, // Desactiva las sugerencias
+  keyboardType: TextInputType.visiblePassword, 
+),
+
                 SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
